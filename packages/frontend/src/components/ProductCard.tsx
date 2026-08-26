@@ -34,8 +34,10 @@ const ProductCard = ({
   const soldOut = saleStatus === "active" && stockRemaining <= 0;
   const canBuy = !!item && saleStatus === "active" && !soldOut && !hasPurchased;
   const stockPercent =
-    item && item.stock > 0 ? Math.max(0, Math.min(100, Math.round((stockRemaining / item.stock) * 100))) : 0;
-  const lowStock = item ? stockRemaining <= Math.max(10, item.stock * 0.15) : false;
+    item && item.originalStock > 0
+      ? Math.max(0, Math.min(100, Math.round((stockRemaining / item.originalStock) * 100)))
+      : 0;
+  const lowStock = item ? stockRemaining <= Math.max(10, item.originalStock * 0.15) : false;
 
   const showCountdown = !!item && (saleStatus === "upcoming" || (saleStatus === "active" && !soldOut));
   const countdown = formatCountdownParts(timeRemainingMs);
@@ -151,7 +153,7 @@ const ProductCard = ({
               <div className="stock-meter-row">
                 <span className="stock-meter-label">Stock remaining</span>
                 <span className={`stock-count${lowStock ? " stock-count--low" : ""}`}>
-                  {stockRemaining} / {item.stock} left
+                  {stockRemaining} / {item.originalStock} left
                 </span>
               </div>
               <div className="stock-bar">

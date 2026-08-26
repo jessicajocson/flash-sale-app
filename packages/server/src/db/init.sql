@@ -28,16 +28,22 @@ CREATE TABLE IF NOT EXISTS flash_sale_items (
   name VARCHAR(255) NOT NULL UNIQUE,
   price DECIMAL(10, 2) NOT NULL,
   stock INTEGER NOT NULL DEFAULT 100,
+  original_stock INTEGER NOT NULL DEFAULT 100,
   version INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 
   CONSTRAINT stock_non_negative CHECK (stock >= 0),
+  CONSTRAINT original_stock_positive CHECK (original_stock > 0),
   CONSTRAINT price_positive CHECK (price > 0)
 );
 
+-- Migration for databases created before `original_stock` existed - a
+-- no-op on a fresh table, since CREATE TABLE above already has the column.
+ALTER TABLE flash_sale_items ADD COLUMN IF NOT EXISTS original_stock INTEGER NOT NULL DEFAULT 100;
+
 -- Index for frequent lookups
-CREATE INDEX IF NOT EXISTS idx_flash_sale_items_created_at 
+CREATE INDEX IF NOT EXISTS idx_flash_sale_items_created_at
 ON flash_sale_items(created_at DESC);
 
 -- ============================================================================
@@ -156,14 +162,16 @@ ON rate_limit_requests(user_id, request_time DESC);
 -- single row instead of matching seed data by name: collapse to the
 -- oldest row (in case an older deploy's seed insert left a stale
 -- differently-named duplicate behind), create it if the table is empty,
--- then sync its name/price to the current drop. `stock`/`version` are
--- deliberately left untouched on an existing row so restarts never
--- resurrect depleted inventory - only a genuinely empty table gets them.
+-- then sync its name/price to the current drop. `stock`/`original_stock`/
+-- `version` are deliberately left untouched on an existing row so restarts
+-- never resurrect depleted inventory - only a genuinely empty table gets
+-- them, seeded from the app's STOCK env var (substituted into __STOCK__
+-- below by initializeDatabase() before this script runs).
 DELETE FROM flash_sale_items
 WHERE id NOT IN (SELECT id FROM flash_sale_items ORDER BY created_at ASC LIMIT 1);
 
-INSERT INTO flash_sale_items (name, price, stock, version)
-SELECT 'Nova Runner — Sunset Edition', 118.00, 100, 0
+INSERT INTO flash_sale_items (name, price, stock, original_stock, version)
+SELECT 'Nova Runner — Sunset Edition', 118.00, __STOCK__, __STOCK__, 0
 WHERE NOT EXISTS (SELECT 1 FROM flash_sale_items);
 
 UPDATE flash_sale_items
@@ -275,7 +283,7 @@ WHERE schemaname = 'public'
 ORDER BY tablename;
 
 -- Verify flash sale item exists
-SELECT id, name, price, stock, version, created_at
+SELECT id, name, price, stock, original_stock, version, created_at
 FROM flash_sale_items
 LIMIT 1;
 
