@@ -1,7 +1,5 @@
 import { MetricsResponse } from "../models";
 
-// ============= Metrics Collector =============
-
 export class MetricsCollector {
   private requestCount = 0;
   private errorCount = 0;

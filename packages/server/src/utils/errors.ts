@@ -1,7 +1,5 @@
 import { AppErrorResponse, ErrorCode } from "../models";
 
-// ============= App Error Class =============
-
 export class AppError extends Error {
     constructor(
         public errorCode: ErrorCode | string,
@@ -23,8 +21,6 @@ export class AppError extends Error {
         };
     }
 }
-
-// ============= Error Factory =============
 
 export class ErrorFactory {
     static validation(message: string, correlationId: string): AppError {

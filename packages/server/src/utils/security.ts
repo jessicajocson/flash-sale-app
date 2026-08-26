@@ -1,14 +1,10 @@
 import { z } from "zod";
 import crypto from "crypto";
 
-// ============= Admin Key Validation =============
-
 export const AdminKeySchema = z
     .string()
     .min(1, "Admin key required")
     .max(256, "Admin key too long");
-
-// ============= Timing-safe comparison =============
 
 /**
  * Constant-time string comparison to prevent timing attacks on secrets

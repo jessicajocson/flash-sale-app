@@ -2,12 +2,9 @@ import { FlashSaleItem, Purchase } from "../models";
 import { database } from "../utils/database";
 import { logger } from "../utils/logger";
 
-// ============= PostgreSQL Flash Sale Repository =============
-
 export class PostgresFlashSaleRepository {
-  /**
-   * Get current sale item
-   */
+
+  //Get current sale item
   async getItem(): Promise<FlashSaleItem> {
     const db = database.get();
 
@@ -25,9 +22,7 @@ export class PostgresFlashSaleRepository {
     return result[0];
   }
 
-  /**
-   * Get total purchase count
-   */
+  //Get total purchase count
   async getPurchaseCount(): Promise<number> {
     const db = database.get();
 
@@ -41,9 +36,7 @@ export class PostgresFlashSaleRepository {
     return result[0]?.count || 0;
   }
 
-  /**
-   * Get purchase by ID
-   */
+  //Get purchase by ID
   async getPurchase(purchaseId: string): Promise<Purchase | undefined> {
     const db = database.get();
 
@@ -56,9 +49,7 @@ export class PostgresFlashSaleRepository {
     return result[0];
   }
 
-  /**
-   * Get a user's purchase for the current item, if any
-   */
+  //Get a user's purchase for the current item, if any
   async getPurchaseByUser(userId: string): Promise<Purchase | undefined> {
     const db = database.get();
 
@@ -72,9 +63,7 @@ export class PostgresFlashSaleRepository {
     return result[0];
   }
 
-  /**
-   * Get all purchases (for admin)
-   */
+  // Get all purchases (for admin)
   async getAllPurchases(): Promise<Purchase[]> {
     const db = database.get();
 

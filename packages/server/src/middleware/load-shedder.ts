@@ -1,7 +1,5 @@
 import { logger } from "../utils/logger";
 
-// ============= Load Shedder =============
-
 export class LoadShedder {
   private currentConcurrency = 0;
   private peakConcurrency = 0;

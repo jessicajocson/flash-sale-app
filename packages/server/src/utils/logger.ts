@@ -1,8 +1,6 @@
 import pino from "pino";
 import { FLASH_SALE_CONFIG } from "../config";
 
-// ============= Main Logger =============
-
 export const logger = pino({
     level: FLASH_SALE_CONFIG.logLevel,
     transport:
@@ -18,8 +16,6 @@ export const logger = pino({
             },
     timestamp: pino.stdTimeFunctions.isoTime,
 });
-
-// ============= Request Logging Helpers =============
 
 export function logRequestStart(
     correlationId: string,

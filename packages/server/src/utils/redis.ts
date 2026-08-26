@@ -2,10 +2,7 @@ import { createClient, RedisClientType } from "redis";
 import { FLASH_SALE_CONFIG } from "../config";
 import { logger } from "../utils/logger";
 
-// ============= Type Exports =============
 export type RedisClient = RedisClientType;
-
-// ============= Redis Manager Class =============
 class RedisManager {
   private connection: RedisClientType | null = null;
 
@@ -25,7 +22,7 @@ class RedisManager {
       });
 
       client.on("error", (err) => logger.error(err, "Redis error"));
-      client.on("connect", () => logger.info("✅ Redis connected"));
+      client.on("connect", () => logger.info("Redis connected"));
       client.on("disconnect", () => logger.info("Redis disconnected"));
 
       await client.connect();
@@ -33,7 +30,7 @@ class RedisManager {
 
       return client;
     } catch (error) {
-      logger.error(error, "❌ Failed to connect to Redis");
+      logger.error(error, "Failed to connect to Redis");
       throw error;
     }
   }
@@ -58,13 +55,10 @@ class RedisManager {
   }
 }
 
-// ============= Singleton Instance =============
 const redis = new RedisManager();
 
-// ============= Exports =============
 export { redis as redis_service };
 
-// Backward compatibility exports
 export const connectRedis = () => redis.connect();
 export const getRedis = () => redis.get();
 export const disconnectRedis = () => redis.disconnect();

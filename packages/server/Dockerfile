@@ -1,24 +1,24 @@
-# ============= Build Stage =============
+# Build
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files for all workspaces
+# Copy package files
 COPY package.json package-lock.json ./
 COPY packages/server/package.json packages/server/
 
 # Install dependencies
 RUN npm ci --workspace=@flash-sale/server
 
-# Copy source code
+# Copy source
 COPY packages/server packages/server
 
-# Build TypeScript
+# Build
 WORKDIR /app/packages/server
 RUN npm run build
 
 
-# ============= Runtime Stage =============
+# Runtime
 FROM node:20-alpine
 
 WORKDIR /app
@@ -31,24 +31,20 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY package.json package-lock.json ./
 COPY packages/server/package.json packages/server/
 
-# Install production dependencies only
+# Install dependencies
 RUN npm ci --workspace=@flash-sale/server --omit=dev && \
     npm cache clean --force
 
-# Copy built application from builder
+# Copy build output
 COPY --from=builder /app/packages/server/dist ./packages/server/dist
 
-# Change ownership
+# Fix permissions
 RUN chown -R nodejs:nodejs /app
 
-# Switch to non-root user
 USER nodejs
 
-# Health check - 127.0.0.1, not "localhost": Alpine/musl resolves
-# "localhost" to ::1 first, but the server only binds IPv4 (HOST=0.0.0.0),
-# so a hostname lookup here would connect-refuse and never pass. wget
-# (from busybox, already present in node:alpine) starts faster and more
-# reliably under the Docker healthcheck runner than spawning a fresh V8.
+# 127.0.0.1, not localhost - alpine resolves localhost to ::1 first and
+# the server only binds IPv4, so it'd never pass
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --quiet --tries=1 --spider http://127.0.0.1:3001/health || exit 1
 

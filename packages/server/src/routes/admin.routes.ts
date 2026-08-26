@@ -1,13 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { adminMetricsHandler, adminPurchaseLogHandler } from "../controllers";
 
-// Documents the header for Swagger UI's "Try it out" (adds an input field
-// for it) without an accompanying `required` list - actual presence/value
-// checking stays in the handlers (AdminKeySchema + timingSafeEqual), which
-// return the app's own 401 INVALID_ADMIN_KEY/403 shape. Marking it required
-// here instead would make Fastify's schema validation reject a missing
-// header before the handler ever runs, falling through to the generic
-// unhandled-error path (500) instead of that intentional response.
+// Just for Swagger UI docs - no `required`, since the handlers already
+// check the key and return our own 401/403 instead of Fastify's generic 500.
 const adminKeyHeaderSchema = {
   type: "object",
   properties: {

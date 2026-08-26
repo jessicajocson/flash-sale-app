@@ -6,9 +6,9 @@ import type { SaleStatusResponse } from "../../interfaces";
 
 interface SaleStatusState {
   data: SaleStatusResponse | null;
-  /** Smoothly interpolated between polls so the countdown doesn't stutter. */
   timeRemainingMs: number;
   loading: boolean;
+  error: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -16,6 +16,7 @@ export function useSaleStatus(): SaleStatusState {
   const [data, setData] = useState<SaleStatusResponse | null>(null);
   const [timeRemainingMs, setTimeRemainingMs] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const lastFetchedAt = useRef(0);
 
   const refresh = useCallback(async () => {
@@ -25,14 +26,15 @@ export function useSaleStatus(): SaleStatusState {
         // Wrong shape entirely (e.g. hit a route that fell back to the
         // SPA's own index.html instead of the API) - treat like a failed
         // fetch rather than rendering garbage.
+        setError(true);
         return;
       }
       lastFetchedAt.current = Date.now();
       setData(response);
       setTimeRemainingMs(response.timeRemaining);
+      setError(false);
     } catch {
-      // Transient network hiccup - the next poll will retry. Stale status
-      // beats blanking out the whole page.
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -52,5 +54,5 @@ export function useSaleStatus(): SaleStatusState {
     return () => clearInterval(tickId);
   }, [data]);
 
-  return { data, timeRemainingMs, loading, refresh };
+  return { data, timeRemainingMs, loading, error, refresh };
 }

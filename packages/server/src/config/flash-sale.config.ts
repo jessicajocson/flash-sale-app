@@ -1,5 +1,3 @@
-// ============= Flash Sale Configuration =============
-
 import { z } from "zod";
 
 export interface FlashSaleConfig {

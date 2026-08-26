@@ -1,5 +1,3 @@
-// ============= Error Models =============
-
 export interface AppErrorResponse {
     errorCode: string;
     message: string;

@@ -7,7 +7,7 @@ import PurchaseModal from "./components/PurchaseModal";
 import { formatPrice } from "./utils/format";
 
 const App = () => {
-  const { data, timeRemainingMs, loading, refresh } = useSaleStatus();
+  const { data, timeRemainingMs, loading, error, refresh } = useSaleStatus();
   const userIdState = useUserId();
   const { theme, toggleTheme } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,6 +36,7 @@ const App = () => {
         status={data}
         timeRemainingMs={timeRemainingMs}
         loading={loading}
+        error={error}
         hasPurchased={userIdState.hasPurchased}
         securedEmail={userIdState.trimmedUserId}
         onResetIdentity={userIdState.resetUserId}

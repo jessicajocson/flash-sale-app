@@ -2,10 +2,7 @@ import postgres from "postgres";
 import { FLASH_SALE_CONFIG } from "../config";
 import { logger } from "../utils/logger";
 
-// ============= Type Exports =============
 export type PostgresDatabase = ReturnType<typeof postgres>;
-
-// ============= Database Manager Class =============
 class DatabaseManager {
   private connection: PostgresDatabase | null = null;
 
@@ -22,12 +19,12 @@ class DatabaseManager {
 
       logger.info(
         { poolSize: FLASH_SALE_CONFIG.databasePoolSize },
-        "✅ Database connected"
+        "Database connected"
       );
 
       return this.connection;
     } catch (error) {
-      logger.error(error, "❌ Failed to connect to database");
+      logger.error(error, "Failed to connect to database");
       throw error;
     }
   }
@@ -52,10 +49,10 @@ class DatabaseManager {
   }
 }
 
-// ============= Singleton Instance =============
+// Singleton Instance
 const db = new DatabaseManager();
 
-// ============= Exports =============
+// Exports
 export { db as database };
 
 // Backward compatibility exports

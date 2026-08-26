@@ -1,5 +1,3 @@
-// ============= Flash Sale Domain Models =============
-
 export interface FlashSaleItem {
     id: string;
     name: string;

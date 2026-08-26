@@ -20,6 +20,7 @@ const noop = () => {};
 const baseProps = {
   timeRemainingMs: 65_000,
   loading: false,
+  error: false,
   hasPurchased: false,
   securedEmail: "",
   onResetIdentity: noop,
@@ -39,6 +40,12 @@ describe("ProductCard", () => {
     expect(screen.getByRole("img")).toBeInTheDocument();
     expect(screen.getByText(/could not connect to the server/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /unavailable/i })).toBeDisabled();
+  });
+
+  it("shows a stale-data warning if a later poll fails while status data is already loaded", () => {
+    render(<ProductCard {...baseProps} status={buildStatus()} error />);
+    expect(screen.getByText(/showing last known status/i)).toBeInTheDocument();
+    expect(screen.queryByText(/could not connect to the server/i)).not.toBeInTheDocument();
   });
 
   it("renders the upcoming state with a disabled button and countdown to start", () => {

@@ -1,7 +1,5 @@
 import { logger } from "../utils/logger";
 
-// ============= Circuit Breaker =============
-
 export class CircuitBreaker {
     private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
     private failureCount = 0;

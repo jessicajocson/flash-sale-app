@@ -1,5 +1,3 @@
-// ============= Flash Sale Server (Fastify) =============
-
 import Fastify, { FastifyInstance } from "fastify";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
@@ -19,20 +17,17 @@ import { redis_service } from "./utils/redis";
 import { initializeDatabase } from "./db/database-utils";
 import { circuitBreaker } from "./middleware";
 
-// ============= Server Setup =============
-
 async function buildServer(): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: false, // Use custom Pino logger
+    logger: false,
   });
 
-  // ============= Security & CORS =============
   await app.register(fastifyHelmet);
   await app.register(fastifyCors, {
     origin: FLASH_SALE_CONFIG.corsOrigin,
   });
 
-  // ============= Swagger Documentation =============
+  // Swagger Documentation
   await app.register(fastifySwagger, {
     swagger: {
       info: {
@@ -62,8 +57,6 @@ async function buildServer(): Promise<FastifyInstance> {
       deepLinking: false,
     },
   });
-
-  // ============= Global Middleware =============
 
   // Correlation ID + Request Logging
   app.addHook("preHandler", correlationIdMiddleware);
@@ -107,10 +100,6 @@ async function buildServer(): Promise<FastifyInstance> {
       const correlationId = (request as any).correlationId;
 
       if (error instanceof AppError) {
-        // Only true server-side faults (5xx) should trip the circuit
-        // breaker or log at `error` severity - expected business
-        // rejections (out of stock, already purchased, validation, etc.)
-        // are all 4xx and are routine, not incidents.
         const isServerFault = error.statusCode >= 500;
         logError(correlationId, error, "Request rejected", isServerFault ? "error" : "warn");
         if (isServerFault) {
@@ -126,32 +115,24 @@ async function buildServer(): Promise<FastifyInstance> {
     }
   );
 
-  // ============= Register All Routes =============
   await registerAllRoutes(app);
 
   return app;
 }
 
-// ============= Server Start =============
-
 async function start() {
   try {
-    // 1. Connect to PostgreSQL
     logger.info("Connecting to PostgreSQL...");
     await database.connect();
 
-    // 2. Connect to Redis
     logger.info("Connecting to Redis...");
     await redis_service.connect();
 
-    // 3. Initialize database schema
     logger.info("Initializing database schema...");
     await initializeDatabase();
 
-    // 4. Build Fastify server
     const app = await buildServer();
 
-    // 5. Start listening
     await app.listen({
       port: FLASH_SALE_CONFIG.port,
       host: FLASH_SALE_CONFIG.host,
@@ -172,7 +153,7 @@ async function start() {
       `📚 Swagger Docs: http://localhost:${FLASH_SALE_CONFIG.port}/docs`
     );
 
-    // Graceful shutdown handler
+    // Shutdown handler
     const shutdown = async () => {
       logger.info("Shutting down gracefully...");
 
@@ -197,8 +178,6 @@ async function start() {
   }
 }
 
-// Start server - but only when this file is the process entry point, not
-// when it's imported elsewhere (e.g. tests importing `buildServer`).
 if (require.main === module) {
   start();
 }

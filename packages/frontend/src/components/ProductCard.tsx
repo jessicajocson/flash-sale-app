@@ -6,6 +6,7 @@ interface Props {
   status: SaleStatusResponse | null;
   timeRemainingMs: number;
   loading: boolean;
+  error: boolean;
   hasPurchased: boolean;
   securedEmail: string;
   onResetIdentity: () => void;
@@ -18,6 +19,7 @@ const ProductCard = ({
   status,
   timeRemainingMs,
   loading,
+  error,
   hasPurchased,
   securedEmail,
   onResetIdentity,
@@ -27,6 +29,7 @@ const ProductCard = ({
   const saleStatus = status?.status;
   const stockRemaining = status?.stockRemaining ?? 0;
   const unreachable = !loading && !item;
+  const stale = error && !unreachable;
 
   const soldOut = saleStatus === "active" && stockRemaining <= 0;
   const canBuy = !!item && saleStatus === "active" && !soldOut && !hasPurchased;
@@ -44,7 +47,7 @@ const ProductCard = ({
       : saleStatus === "active"
         ? soldOut
           ? "Sold out"
-          : "Live now"
+          : null
         : saleStatus === "ended"
           ? "Sale ended"
           : null;
@@ -165,6 +168,11 @@ const ProductCard = ({
           {unreachable && (
             <p className="status-line status-line--error">
               Could not connect to the server. Retrying…
+            </p>
+          )}
+          {stale && (
+            <p className="status-line status-line--error">
+              Showing last known status — having trouble reaching the server. Retrying…
             </p>
           )}
 

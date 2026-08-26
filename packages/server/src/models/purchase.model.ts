@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// ============= Request Models =============
-
 export const PurchaseRequestSchema = z.object({
   userId: z
     .string()
@@ -15,8 +13,6 @@ export const PurchaseRequestSchema = z.object({
 });
 
 export type PurchaseRequest = z.infer<typeof PurchaseRequestSchema>;
-
-// ============= Response Models =============
 
 export interface PurchaseResponse {
   success: boolean;
@@ -36,8 +32,6 @@ export interface PurchaseStatusResponse {
   purchaseId?: string;
   timestamp: string;
 }
-
-// ============= Admin Response =============
 
 export interface AdminMetricsResponse {
   timestamp: string;

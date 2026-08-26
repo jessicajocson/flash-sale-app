@@ -1,10 +1,6 @@
-// Mirrors packages/server/src/models/flash-sale.model.ts
-
 export interface FlashSaleItem {
   id: string;
   name: string;
-  // Backend types this `number`, but the `postgres` driver returns
-  // DECIMAL columns as strings on the wire - typed to match reality.
   price: number | string;
   stock: number;
   version: number;

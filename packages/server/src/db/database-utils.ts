@@ -3,10 +3,6 @@ import { join } from "path";
 import { getDatabase } from "../utils/database";
 import { logger } from "../utils/logger";
 
-// ============================================================================
-// Database Utilities - Initialization & Management
-// ============================================================================
-
 /**
  * Initialize database: Create tables and seed data
  * This runs on startup if needed
