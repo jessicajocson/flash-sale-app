@@ -141,7 +141,7 @@ const ProductCard = ({
 
           {item ? (
             <p className="item-description">
-              Retro-inspired mesh runner in a limited sunset colorway — lightweight cushioning, built
+              Retro-inspired mesh runner in a limited sunset colorway. Lightweight cushioning, built
               for everyday miles.
             </p>
           ) : (
