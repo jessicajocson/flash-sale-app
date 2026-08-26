@@ -1,0 +1,1 @@
+export { FLASH_SALE_CONFIG, loadFlashSaleConfig, type FlashSaleConfig } from "./flash-sale.config";

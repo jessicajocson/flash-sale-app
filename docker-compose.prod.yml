@@ -1,0 +1,129 @@
+# A fully self-contained stack (its own Postgres/Redis, not the ones from
+# the dev-only docker-compose.yml). `name:` below gives this file its own
+# Compose project, independent of docker-compose.yml's `flash-sale-dev` -
+# without that, both files default to the same project name and Compose
+# treats their same-named `postgres`/`redis` services as one shared slot,
+# silently evicting whichever stack was already running. Container names,
+# volumes, and the network are also namespaced "-prod" for clarity, but
+# the `name:` is what actually prevents the collision.
+name: flash-sale-prod
+
+services:
+  # ============= PostgreSQL Database =============
+  postgres:
+    image: postgres:16-alpine
+    container_name: flash-sale-prod-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flash_sale_dev
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    # No host port published: only `backend` needs to reach this, over the
+    # internal `flash-sale-prod-network`. Avoids colliding with any Postgres
+    # already running on the host, too.
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d flash_sale_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flash-sale-prod-network
+    restart: unless-stopped
+
+  # ============= Redis Cache =============
+  redis:
+    image: redis:7-alpine
+    container_name: flash-sale-prod-redis
+    # No host port published - see the note on the postgres service above.
+    volumes:
+      - redis_data_prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - flash-sale-prod-network
+    restart: unless-stopped
+
+  # ============= Backend Service =============
+  # Schema init (packages/server/src/db/init.sql) runs from the app on
+  # boot (see src/index.ts / db/database-utils.ts), so there's no need
+  # for a docker-entrypoint-initdb.d mount here - it's idempotent either way.
+  backend:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+    container_name: flash-sale-prod-backend
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      PORT: 3001
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/flash_sale_dev
+      DATABASE_POOL_SIZE: 10
+      DATABASE_IDLE_TIMEOUT: 30000
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGIN: http://localhost
+      ADMIN_KEY: dev-admin-secret-key
+      STOCK: 100
+      # SALE_START / SALE_END left unset: defaults to a sale starting 1
+      # minute after boot, running 5 minutes. Set explicit ISO 8601 UTC
+      # values here for a real launch window.
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - flash-sale-prod-network
+    restart: unless-stopped
+
+  # ============= Frontend Service =============
+  # Deliberately no `depends_on: backend` - packages/frontend/nginx.conf
+  # resolves the `backend` upstream per-request (see its resolver comment),
+  # so this container starts and serves the homepage fine on its own. That's
+  # what makes `docker compose -f docker-compose.prod.yml up frontend` work
+  # as a genuinely standalone run for testing the "backend not running"
+  # fallback UI - adding the dependency back would drag in backend/postgres/
+  # redis just to view the frontend.
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    container_name: flash-sale-prod-frontend
+    ports:
+      - "3000:80"
+    networks:
+      - flash-sale-prod-network
+    restart: unless-stopped
+
+  # ============= Nginx Proxy =============
+  nginx:
+    image: nginx:alpine
+    container_name: flash-sale-prod-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - flash-sale-prod-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local
+
+networks:
+  flash-sale-prod-network:
+    driver: bridge

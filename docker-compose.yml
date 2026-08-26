@@ -1,0 +1,55 @@
+# Explicit project name so this file's containers/network/volumes never
+# collide with docker-compose.prod.yml's - without this, both files
+# default to the same project name (the directory name), and Compose
+# treats their same-named `postgres`/`redis` services as one shared slot,
+# recreating (evicting) whichever one was up when you start the other.
+name: flash-sale-dev
+
+services:
+  # ============= PostgreSQL Database =============
+  postgres:
+    image: postgres:16-alpine
+    container_name: flash-sale-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: flash_sale_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - flash-sale-network
+
+  # ============= Redis Cache =============
+  redis:
+    image: redis:7-alpine
+    container_name: flash-sale-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - flash-sale-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  flash-sale-network:
+    driver: bridge
