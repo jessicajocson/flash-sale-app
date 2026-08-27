@@ -6,7 +6,7 @@ import type { SaleStatusResponse } from "../interfaces";
 
 function buildStatus(overrides: Partial<SaleStatusResponse> = {}): SaleStatusResponse {
   return {
-    item: { id: "1", name: "Limited Edition Item", price: "99.99", stock: 10, version: 0 },
+    item: { id: "1", name: "Limited Edition Item", price: "99.99", stock: 10, originalStock: 10, version: 0 },
     status: "active",
     saleActive: true,
     stockRemaining: 10,

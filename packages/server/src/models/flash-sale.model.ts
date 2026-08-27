@@ -3,6 +3,7 @@ export interface FlashSaleItem {
     name: string;
     price: number;
     stock: number;
+    originalStock: number;
     version: number;
   }
   

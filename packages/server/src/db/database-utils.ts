@@ -2,6 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { getDatabase } from "../utils/database";
 import { logger } from "../utils/logger";
+import { FLASH_SALE_CONFIG } from "../config";
 
 /**
  * Initialize database: Create tables and seed data
@@ -13,9 +14,14 @@ export async function initializeDatabase(): Promise<void> {
   try {
     logger.info("Initializing database schema...");
 
-    // Read init.sql
+    // Read init.sql - the seed INSERT's stock/original_stock values are a
+    // placeholder token, not a literal, so this stays configurable via the
+    // STOCK env var instead of being hardcoded in the SQL file.
     const initSqlPath = join(__dirname, "./init.sql");
-    const initSql = readFileSync(initSqlPath, "utf-8");
+    const initSql = readFileSync(initSqlPath, "utf-8").replace(
+      /__STOCK__/g,
+      String(FLASH_SALE_CONFIG.stock)
+    );
 
     // Run the whole file in one call so postgres.js can parse dollar-quoted
     // blocks (DO $$ ... $$, CREATE FUNCTION ... $$) correctly - naive

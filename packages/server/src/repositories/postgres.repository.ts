@@ -9,7 +9,7 @@ export class PostgresFlashSaleRepository {
     const db = database.get();
 
     const result = await db<FlashSaleItem[]>`
-      SELECT id, name, price, stock, version
+      SELECT id, name, price, stock, original_stock as "originalStock", version
       FROM flash_sale_items
       ORDER BY created_at ASC
       LIMIT 1
@@ -208,7 +208,7 @@ export class PostgresFlashSaleRepository {
 
     await db`
       UPDATE flash_sale_items
-      SET stock = ${initialStock}, version = 0, updated_at = NOW()
+      SET stock = ${initialStock}, original_stock = ${initialStock}, version = 0, updated_at = NOW()
       WHERE name = 'Nova Runner — Sunset Edition'
     `;
 
